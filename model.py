@@ -65,3 +65,33 @@ def gated_residual(x: torch.Tensor,
 def blend_multiplicative(x, f_x, alpha, beta):
     gate = alpha / (alpha + beta)             # ∈ (0, 1)
     return gate * f_x + (1 - gate) * x
+
+
+
+class RMSNorm(nn.Module):
+    """
+    Implements Root Mean Square Layer Normalization (RMSNorm), a normalization
+    technique that scales inputs based on their root-mean-square (RMS) without
+    subtracting the mean.
+
+    Reference:
+        Zhang, B., Lucas, J., Ba, J., & Hinton, G. (2019).
+        "Root Mean Square Layer Normalization."
+        arXiv preprint arXiv:1910.07467.
+        https://arxiv.org/abs/1910.07467
+
+    Args:
+        dim : int
+            The dimension of the last axis of the input tensor.
+        eps : float
+            A small constant for numerical stability (default: 1e-8).
+    """
+    def __init__(self, dim: int, eps: float = 1e-8):
+        super().__init__()
+        self.eps = eps
+        self.weight = nn.Parameter(torch.ones(dim))
+
+    def forward(self, x):
+        rms = x.pow(2).mean(dim=-1, keepdim=True).sqrt().clamp(min=self.eps)
+        return self.weight * (x / rms)
+

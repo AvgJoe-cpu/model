@@ -61,3 +61,7 @@ def gated_residual(x: torch.Tensor,
         out = out / (alpha + beta)         # ← Equation (3) denominator
     return out
 
+
+def blend_multiplicative(x, f_x, alpha, beta):
+    gate = alpha / (alpha + beta)             # ∈ (0, 1)
+    return gate * f_x + (1 - gate) * x

@@ -95,3 +95,15 @@ class RMSNorm(nn.Module):
         rms = x.pow(2).mean(dim=-1, keepdim=True).sqrt().clamp(min=self.eps)
         return self.weight * (x / rms)
 
+
+class AngularGate(nn.Module):
+    def __init__(self, in_dim: int, c: float = math.pi / 4):  # c < π/2 to keep tan(θ) stable
+        super().__init__()
+        self.g = nn.Linear(in_dim, 1)
+        self.c = c
+
+    def forward(self, x: torch.Tensor):
+        θ = self.c * torch.tanh(self.g(x))       # angle in [−c, c]
+        alpha = torch.cos(θ) + torch.sin(θ)
+        beta  = torch.cos(θ) - torch.sin(θ)
+        return alpha, beta, θ
